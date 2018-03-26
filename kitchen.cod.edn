@@ -1,0 +1,6 @@
+{"api" {"kitchen" {:get {:rsp {:200 {:body-examples ["data/kitchen/rsp/get-kitchen.json"]}}}}
+        "kettle" {:get {:rsp {:200 {:body-examples ["data/kitchen/rsp/get-kettle.json"]}}}}
+        "kettle/fill" {:post {:rsp {:204 {} :400 {:body-examples ["data/kitchen/rsp/post-kettle-fill.error.json"]}}}}
+        "kettle/crusty" {:post {:rsp {:204 {} :400 {:body-examples ["data/kitchen/rsp/post-kettle-crusty.error.json"]}}}}
+        "kettle/plug" {:post {:rsp {:204 {} :400 {:body-examples ["data/kitchen/rsp/post-kettle-plug.error.json"]}}}}
+        "kettle/boil" {:post {:rsp {:204 {} :400 {:body-examples ["data/kitchen/rsp/post-kettle-boil.error.json"]}}}}}}

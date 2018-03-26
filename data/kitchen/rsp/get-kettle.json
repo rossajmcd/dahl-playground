@@ -1,0 +1,7 @@
+{
+  "resource": "api/kettle",
+  "state": "api/kettle/fill",
+  "controls": [
+    {"post": "api/kettle/boil"}
+  ]
+}

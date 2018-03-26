@@ -1,0 +1,11 @@
+{
+  "resource": "kettle/fill",
+  "state": "api/kettle/fill",
+  "controls": [
+    {"post": "api/kettle/fill"},
+    {"post": "api/kettle/crusty"},
+    {"post": "api/kettle/plug"},
+    {"post": "api/kettle/boil"}
+  ],
+  "message": ""
+}

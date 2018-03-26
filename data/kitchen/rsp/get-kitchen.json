@@ -1,0 +1,8 @@
+{
+  "resource": "api/kitchen",
+  "controls": [
+    {"get": "api/kitchen/kettle"},
+    {"get": "api/kitchen/toater"},
+    {"get": "api/kitchen/frying-pan"}
+  ]
+}
