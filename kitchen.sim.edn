@@ -8,7 +8,7 @@
 
 (def graph-config
   {[:waiting :make] :making
-   [:making :get-status] :waiting})
+   [:making :get-status] :made})
 
 (defn change-state [xs]
   (let [new-state ((fsm graph-config @my-atom) xs)]
@@ -22,6 +22,8 @@
   "api" {
     "entrypoint" {
       :get  #(respond % 200 (change-state []))
+    }
+    "${uuid}" {
       :post #(respond % 200 (change-state [(next-state @my-atom)]))
     }
   }

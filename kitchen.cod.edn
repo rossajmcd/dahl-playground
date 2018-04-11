@@ -1,7 +1,12 @@
 {
+  :vars {
+    "uuid" {:type :Uuid}
+  }
   "api" {
     "entrypoint" {
       :get  {:rsp {:200 {}}}
+    }
+    "${uuid}" {
       :post {:rsp {:200 {}}}
     }
   }
