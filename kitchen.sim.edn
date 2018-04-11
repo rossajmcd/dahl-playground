@@ -1,0 +1,28 @@
+(ns kitchen.api
+  (:require [protean.api.transformation.sim :refer :all]))
+
+(def my-atom (atom :waiting))
+
+(defn fsm [graph init]
+  (fn [edges] (reduce #(get graph [%1 %2] :edge-error) init edges)))
+
+(def graph-config
+  {[:waiting :make] :making
+   [:making :get-status] :waiting})
+
+(defn change-state [xs]
+  (let [new-state ((fsm graph-config @my-atom) xs)]
+    (reset! my-atom new-state)
+    (str new-state)))
+
+(defn next-state [xs]
+  (second (first (filter #(= (first %) xs) (keys graph-config)))))
+
+{
+  "api" {
+    "entrypoint" {
+      :get  #(respond % 200 (change-state []))
+      :post #(respond % 200 (change-state [(next-state @my-atom)]))
+    }
+  }
+}
