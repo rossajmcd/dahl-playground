@@ -3,4 +3,5 @@
 
   :url          "https://github.com/rossputin/dahl-playground"
 
-  :dependencies [[org.clojure/clojure "1.9.0"]])
+  :dependencies [[org.clojure/clojure "1.9.0"]
+                 [fsmviz "0.1.3"]])
