@@ -4,10 +4,11 @@
   }
   "api" {
     "entrypoint" {
-      :get  {:rsp {:200 {}}}
+      :get {:rsp {:200 {:headers {"Content-Type" "application/json"}}}}
     }
     "${uuid}" {
-      :post {:rsp {:200 {}}}
+      :post {:rsp {:200 {:headers {"Content-Type" "application/json"}}
+                   :400 {}}}
     }
   }
 }

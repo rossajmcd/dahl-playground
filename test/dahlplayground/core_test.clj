@@ -14,11 +14,16 @@
 
 (def better-drink-machine
   {nil {:init :Ready}
-   :Ready {:make-tea :MakingTea}
-   :MakingTea {:get-status :GettingTeaStatus}
-   :GettingTeaStatus {:making-tea :MakingTea
-                      :completing-tea :MadeTea
-                      :erroring-tea :ErroredTea}})
+   :Ready {:make-tea :MakingTea
+           :make-coffee :MakingCoffee}
+   :MakingTea {:get-status :GettingTeaStatus?}
+   :MakingCoffee {:get-status :GettingCoffeeStatus?}
+   :GettingTeaStatus? {:making-tea :MakingTea
+                       :completing-tea :MadeTea
+                       :erroring-tea :ErroredTea}
+   :GettingCoffeeStatus? {:making-coffee :MakingCoffee
+                          :completing-coffee :MadeCoffee
+                          :erroring-coffee :ErroredCoffe}})
 
 (deftest blurb
   (viz/generate-image better-drink-machine

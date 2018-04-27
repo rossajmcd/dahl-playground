@@ -1,30 +1,40 @@
 (ns kitchen.api
   (:require [protean.api.transformation.sim :refer :all]))
 
-(def my-atom (atom :waiting))
+(def node-atom (atom :Ready))
 
-(defn fsm [graph init]
-  (fn [edges] (reduce #(get graph [%1 %2] :edge-error) init edges)))
+(def edge-atom (atom :make-tea))
 
-(def graph-config
-  {[:waiting :make] :making
-   [:making :get-status] :made})
+(def graph
+  {:Ready {:make-tea :MakingTea
+           :make-coffee :MakingCoffee}
+   :MakingTea {:get-status :GettingTeaStatus?}
+   :MakingCoffee {:get-status :GettingCoffeeStatus?}
+   :GettingTeaStatus? {:making-tea :MakingTea
+                       :completing-tea :MadeTea
+                       :erroring-tea :ErroredTea}
+   :GettingCoffeeStatus? {:making-coffee :MakingCoffee
+                          :completing-coffee :MadeCoffee
+                          :erroring-coffee :ErroredCoffe}})
 
-(defn change-state [xs]
-  (let [new-state ((fsm graph-config @my-atom) xs)]
-    (reset! my-atom new-state)
-    (str new-state)))
+(defn next-node
+  [graph node edge]
+  (when-let [new-state (get-in graph [node edge])]
+    (reset! node-atom new-state)
+    new-state))
 
-(defn next-state [xs]
-  (second (first (filter #(= (first %) xs) (keys graph-config)))))
+
+; if node ends with ? then no link required
 
 {
   "api" {
     "entrypoint" {
-      :get  #(respond % 200 (change-state []))
+      :get  #(respond % 200 (@node-atom graph))
     }
     "${uuid}" {
-      :post #(respond % 200 (change-state [(next-state @my-atom)]))
+      :post #(if-let [n (next-node graph @node-atom @edge-atom)]
+               (respond % 200 (n graph))
+               (respond % 400))
     }
   }
 }
