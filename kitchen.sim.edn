@@ -17,23 +17,41 @@
                           :completing-coffee :MadeCoffee
                           :erroring-coffee :ErroredCoffe}})
 
+(def tea-ready (atom false))
+(def coffee-ready (atom false))
+
+(def rules
+  {:MakingTea #(future (Thread/sleep 30000) (reset! tea-ready true))
+   :GettingTeaStatus? #(if @tea-ready :MadeTea :MakingTea)
+   :MakingCoffee #(future (Thread/sleep 30000) (reset! coffee-ready true))
+   :GettingCoffeeStatus? #(if @coffee-ready :MadeCoffee :MakingCoffee)})
+
 (defn next-node
   [graph node edge]
-  (when-let [new-state (get-in graph [node (keyword edge)])]
-    (reset! node-atom new-state)
-    new-state))
+  (let [n (get-in graph [node (keyword edge)])
+        f (when-let [rule (get rules n)] (apply rule []))]
+    (cond
+      (keyword? f) f
+      (future? f)  n
+      :else        n)))
 
-; if node ends with ? then no link required
+(defn result
+  [graph node]
+  {:node node
+   :links (for [edge (keys (node graph))]
+     {:href "api/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
+      :edge edge})})
 
 {
   "api" {
     "entrypoint" {
-      :get #(respond % 200 (keys (@node-atom graph)))
+      :get #(respond % 200 (result graph @node-atom))
     }
     "${uuid}" {
       :post #(if-let [n (next-node graph @node-atom (body-param % "edge"))]
-               (respond % 200 (keys (n graph)))
-               (respond % 400 (keys (@node-atom graph))))
+               (do (reset! node-atom n)
+                   (respond % 200 (result graph n)))
+               (respond % 400 (result graph @node-atom)))
     }
   }
 }
