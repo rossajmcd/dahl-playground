@@ -3,12 +3,12 @@
     "uuid" {:type :Uuid}
   }
   "api" {
+    :rsp {:headers {"Content-Type" "application/json"}}    
     "entrypoint" {
-      :get {:rsp {:200 {:headers {"Content-Type" "application/json"}}}}
+      :get {:rsp {:200 {}}}
     }
     "${uuid}" {
-      :post {:rsp {:200 {:headers {"Content-Type" "application/json"}}
-                   :400 {}}}
+      :post {:rsp {:200 {} :400 {}}}
     }
   }
 }

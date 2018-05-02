@@ -19,22 +19,21 @@
 
 (defn next-node
   [graph node edge]
-  (when-let [new-state (get-in graph [node edge])]
+  (when-let [new-state (get-in graph [node (keyword edge)])]
     (reset! node-atom new-state)
     new-state))
-
 
 ; if node ends with ? then no link required
 
 {
   "api" {
     "entrypoint" {
-      :get  #(respond % 200 (@node-atom graph))
+      :get #(respond % 200 (keys (@node-atom graph)))
     }
     "${uuid}" {
-      :post #(if-let [n (next-node graph @node-atom @edge-atom)]
-               (respond % 200 (n graph))
-               (respond % 400))
+      :post #(if-let [n (next-node graph @node-atom (body-param % "edge"))]
+               (respond % 200 (keys (n graph)))
+               (respond % 400 (keys (@node-atom graph))))
     }
   }
 }
