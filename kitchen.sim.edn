@@ -3,8 +3,6 @@
 
 (def node-atom (atom :Ready))
 
-(def edge-atom (atom :make-tea))
-
 (def graph
   {:Ready {:make-tea :MakingTea
            :make-coffee :MakingCoffee}
