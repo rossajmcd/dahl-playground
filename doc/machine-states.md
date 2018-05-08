@@ -29,6 +29,8 @@ HTTP/1.1 200 OK
 ***** Exposing the interface for select ingredients *****
 - N.B. No option to make drink as ingredients are not selected yet.
 
+GET /drinkmachine HTTP/1.1
+
 {
 	:resource "/drinkmachine"
 	:state "selecting-ingredients"
@@ -84,6 +86,8 @@ HTTP/1.1 200 OK
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
+GET /drinkmachine HTTP/1.1
+
 {
 	:resource "/drinkmachine"
 	:state "selecting-ingredients"
@@ -137,6 +141,8 @@ HTTP/1.1 200 OK
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
+GET /drinkmachine HTTP/1.1
+
 {
 	:resource "/drinkmachine"
 	:state "selecting-ingredients"
@@ -181,6 +187,8 @@ HTTP/1.1 200 OK
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
+GET /drinkmachine HTTP/1.1
+
 {
 	:resource "/drinkmachine"
 	:state "selecting-ingredients"
@@ -218,6 +226,8 @@ There is no control here for get-status as we still don't think it is necessary
 this entrypoint tells us everything we need to know.  We have put a contrived
 emergency shutdown control though - lets pretend the cup is overfilling ?
 
+GET /drinkmachine HTTP/1.1
+
 {
 	:resource "/drinkmachine"
 	:state "making-drink"
@@ -243,6 +253,8 @@ the machine.  We retain the beverage, milk and sugar information to make this
 response useful to the consumer.  Lets assume that a sensor reading tells us
 the cup is still in its slot so we cannot proceed to any controls bar
 shutdown at this time.
+
+GET /drinkmachine HTTP/1.1
 
 {
 	:resource "/drinkmachine"
