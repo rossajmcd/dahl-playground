@@ -35,10 +35,10 @@
 
 (defn result
   [graph node]
-  {:node node
+  {:state node
    :links (for [edge (keys (node graph))]
      {:href "api/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-      :edge edge})})
+      :event edge})})
 
 {
   "api" {
@@ -46,7 +46,7 @@
       :get #(respond % 200 (result graph @node-atom))
     }
     "${uuid}" {
-      :post #(if-let [n (next-node graph @node-atom (body-param % "edge"))]
+      :post #(if-let [n (next-node graph @node-atom (body-param % "event"))]
                (do (reset! node-atom n)
                    (respond % 200 (result graph n)))
                (respond % 400 (result graph @node-atom)))
