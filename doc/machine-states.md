@@ -1,6 +1,6 @@
 ***** Entrypoint *****
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
   :resource "/drinkmachine"
@@ -15,21 +15,20 @@ GET /drinkmachine HTTP/1.1
   ]
 }
 
+
 ***** select ingredients *****
 
-PUT /drinkmachine HTTP/1.1
+POST /drinkmachine
 
 {
     "event": "select-ingredients"
 }
 
-HTTP/1.1 200 OK
-
 
 ***** Exposing the interface for select ingredients *****
 - N.B. No option to make drink as ingredients are not selected yet.
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
@@ -71,22 +70,19 @@ GET /drinkmachine HTTP/1.1
 
 ***** add-beverage 'tea' *****
 
-PUT /drinkmachine HTTP/1.1
+POST /drinkmachine
 
 {
     "event": "add-beverage"
     "beverage": "tea"
 }
 
-HTTP/1.1 200 OK
-
-
 
 ***** Exposing the interface for select ingredients after adding tea *****
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
@@ -127,21 +123,19 @@ GET /drinkmachine HTTP/1.1
 
 ***** add-milk 'semi' *****
 
-PUT /drinkmachine HTTP/1.1
+POST /drinkmachine
 
 {
     "event": "add-milk"
     "milk": "semi"
 }
 
-HTTP/1.1 200 OK
-
 
 ***** Exposing the interface for select ingredients after adding milk *****
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
@@ -173,21 +167,19 @@ GET /drinkmachine HTTP/1.1
 
 ***** add-sugar '1' *****
 
-PUT /drinkmachine HTTP/1.1
+POST /drinkmachine
 
 {
     "event": "add-sugar"
     "sugar": 1
 }
 
-HTTP/1.1 200 OK
-
 
 ***** Exposing the interface for select ingredients after adding sugar *****
 - N.B. The only required ingredient is beverage, now we could make the drink
 if we wanted without milk or sugar.
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
@@ -210,13 +202,11 @@ GET /drinkmachine HTTP/1.1
 
 ***** make-drink *****
 
-PUT /drinkmachine HTTP/1.1
+POST /drinkmachine
 
 {
     "event": "make-drink"
 }
-
-HTTP/1.1 200 OK
 
 
 ***** Exposing the interface while making drink *****
@@ -226,7 +216,7 @@ There is no control here for get-status as we still don't think it is necessary
 this entrypoint tells us everything we need to know.  We have put a contrived
 emergency shutdown control though - lets pretend the cup is overfilling ?
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
@@ -254,7 +244,7 @@ response useful to the consumer.  Lets assume that a sensor reading tells us
 the cup is still in its slot so we cannot proceed to any controls bar
 shutdown at this time.
 
-GET /drinkmachine HTTP/1.1
+GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
