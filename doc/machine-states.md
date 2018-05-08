@@ -1,3 +1,10 @@
+***** GENERAL ASSUMPTIONS *****
+
+- As we are layering events over state over time, it seems logical to use POST.
+- Only the one URI into this - the entrypoint, which is basically therefore the
+self link equivalent.
+
+
 ***** Entrypoint *****
 
 GET /drinkmachine
