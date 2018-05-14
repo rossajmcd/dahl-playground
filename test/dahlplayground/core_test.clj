@@ -19,12 +19,12 @@
 (def ingredients-drink-machine
   {nil {:init :Ready}
    :Ready {:select-ingredients :SelectingIngredients}
-   :SelectingIngredients {:add-beverage :SelectingIngredients
+   :SelectingIngredients {:add-beverage-required :SelectingIngredients
                           :add-milk :SelectingIngredients
                           :add-sugar :SelectingIngredients
                           :make-drink :MakingDrink}
    :MakingDrink {:shutdown :ShutDown
-                 :complete :MadeDrink}
+                 :complete-machine :MadeDrink}
    :MadeDrink {:shutdown :ShutDown}
    :Shutdown {}})
 
