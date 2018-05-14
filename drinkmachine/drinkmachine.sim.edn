@@ -31,7 +31,8 @@
 (defn result
  [graph node]
  (let [edges (remove #(str/includes? (name %) "-machine") (keys (node graph)))]
-   {:node node
+   {:resource "drinkmachine"
+    :state node
     :controls (into {} (for [edge edges]
       {edge {:method "post"
              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
