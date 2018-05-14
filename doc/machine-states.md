@@ -11,11 +11,11 @@ GET /drinkmachine
 
 {
   :resource "/drinkmachine"
-  :state "Ready"
+  :state {:state "Ready"}
   :controls [
     {
       :rel "select-ingredients"
-      :method "PUT"
+      :method "POST"
       :href "/drinkmachine"
       :requires {:event "select-ingredients"}
     }
@@ -39,14 +39,11 @@ GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "selecting-ingredients"
-  :beverage "none"
-	:milk "none"
-  :sugar 0
+	:state {:state "selecting-ingredients" :beverage "none" :milk "none" :sugar 0}
 	:controls [
     {
 	    :rel "add-beverage"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-beverage"
@@ -55,7 +52,7 @@ GET /drinkmachine
     }
     {
 	    :rel "add-milk"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-milk"
@@ -64,7 +61,7 @@ GET /drinkmachine
     }
     {
 	    :rel "add-sugar"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-sugar"
@@ -93,14 +90,11 @@ GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "selecting-ingredients"
-  :beverage "tea"
-	:milk "none"
-  :sugar 0
+	:state {:state "selecting-ingredients" :beverage "tea" :milk "none" :sugar 0}
 	:controls [
     {
 	    :rel "add-milk"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-milk"
@@ -109,7 +103,7 @@ GET /drinkmachine
     }
     {
 	    :rel "add-sugar"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-sugar"
@@ -118,7 +112,7 @@ GET /drinkmachine
     }
     {
 	    :rel "make-drink"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "make-drink"
@@ -146,14 +140,11 @@ GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "selecting-ingredients"
-  :beverage "tea"
-	:milk "semi"
-  :sugar 0
+	:state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 0}
 	:controls [
     {
 	    :rel "add-sugar"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "add-sugar"
@@ -162,7 +153,7 @@ GET /drinkmachine
     }
     {
 	    :rel "make-drink"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "make-drink"
@@ -190,14 +181,11 @@ GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "selecting-ingredients"
-  :beverage "tea"
-	:milk "semi"
-  :sugar 1
+	:state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 1}
 	:controls [
     {
 	    :rel "make-drink"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "make-drink"
@@ -220,21 +208,18 @@ POST /drinkmachine
 - N.B. For 1 minute the machine is busy making the drink.
 Hitting the entrypoint during this time will yield a state of 'making-drink'.
 There is no control here for get-status as we still don't think it is necessary
-this entrypoint tells us everything we need to know.  We have put a contrived
+this entrypoint tells us everything we need to know.  We have POST a contrived
 emergency shutdown control though - lets pretend the cup is overfilling ?
 
 GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "making-drink"
-  :beverage "tea"
-	:milk "semi"
-  :sugar 1
+  :state {:state "making-drink" :beverage "tea" :milk "semi" :sugar 1}
 	:controls [
     {
 	    :rel "shutdown"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "shutdown"
@@ -255,14 +240,11 @@ GET /drinkmachine
 
 {
 	:resource "/drinkmachine"
-	:state "drink-ready"
-  :beverage "tea"
-	:milk "semi"
-  :sugar 1
+  :state {:state "drink-ready" :beverage "tea" :milk "semi" :sugar 1}
 	:controls [
     {
 	    :rel "shutdown"
-	    :method "PUT"
+	    :method "POST"
 	    :href "/drinkmachine"
 	    :requires {
         :event "shutdown"
