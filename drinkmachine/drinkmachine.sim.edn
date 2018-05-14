@@ -1,5 +1,6 @@
 (ns drinkmachine.api
-  (:require [protean.api.transformation.sim :refer :all]))
+  (:require [clojure.string :as str]
+            [protean.api.transformation.sim :refer :all]))
 
 (def node-atom (atom :Ready))
 
@@ -29,11 +30,12 @@
 
 (defn result
   [graph node]
-  {:node node
-   :_links (into {} (for [edge (keys (node graph))]
-     {edge {:method "post"
-            :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-            :body (str "{\"event\": \"" (name edge) "\"}")}}))})
+  (let [edges (remove #(str/includes? (name %) "-machine") (keys (node graph)))]
+    {:node node
+     :_links (into {} (for [edge edges]
+       {edge {:method "post"
+              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
+              :body (str "{\"event\": \"" (name edge) "\"}")}}))}))
 
 {
   "api" {
