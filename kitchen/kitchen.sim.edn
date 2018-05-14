@@ -36,7 +36,7 @@
 (defn result
   [graph node]
   {:node node
-   :_links (into {} (for [edge (keys (node graph))]
+   :controls (into {} (for [edge (keys (node graph))]
      {edge {:method "post"
             :href "/api/kitchen/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
             :body (str "{\"event\": \"" (name edge) "\"}")}}))})

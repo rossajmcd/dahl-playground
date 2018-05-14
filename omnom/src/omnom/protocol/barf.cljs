@@ -8,11 +8,11 @@
 
 (defn- format-embedded [embedded host]
   (mapv
-    #(let [t (get-in % [:_links :self :title])
-           x (get-in % [:_links :self :href])]
+    #(let [t (get-in % [:controls :self :title])
+           x (get-in % [:controls :self :href])]
       (if x
-        (-> % (dissoc :_links) (assoc :href (h/->Link x host "get" t)))
-        (-> % (dissoc :_links))))
+        (-> % (dissoc :controls) (assoc :href (h/->Link x host "get" t)))
+        (-> % (dissoc :controls))))
     embedded))
 
 (defn- format-links
@@ -32,9 +32,9 @@
 
   DahlJson
   (barf [_ json host]
-    (let [title (get-in json [:_links :self :href])
-          entity (dissoc json :_links :_embedded)
-          links (dissoc (:_links json) :self)]
+    (let [title (get-in json [:controls :self :href])
+          entity (dissoc json :controls :_embedded)
+          links (dissoc (:controls json) :self)]
       [:div
         (h/hiccup (h/->H3LinkTitle title host))
         (h/hiccup entity)
