@@ -57,10 +57,10 @@
         form @(rf/subscribe [:api-form])]
   (cond
     body (b/barf (b/->DahlJson "dahl+json") body @(rf/subscribe [:api-host]))
-    form (b/barf (b/->Form "hal+json") form @(rf/subscribe [:api-host]))
+    form (b/barf (b/->Form "dahl+json") form @(rf/subscribe [:api-host]))
     :else "Enter the starting point of your API and hit explore.")))
 
-(defn version [] "v0.0.1-SNAPSHOT")  ;; (str "v" (project-version))
+(defn version [] "v0.1.0-SNAPSHOT")  ;; (str "v" (project-version))
 
 ;; ------------- Public Api ----------------------------------------------------
 
