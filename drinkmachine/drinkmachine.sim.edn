@@ -1,0 +1,50 @@
+(ns drinkmachine.api
+  (:require [protean.api.transformation.sim :refer :all]))
+
+(def node-atom (atom :Ready))
+
+(def graph
+ {:Ready {:select-ingredients :SelectingIngredients}
+  :SelectingIngredients {:add-beverage-required :SelectingIngredients
+                         :add-milk :SelectingIngredients
+                         :add-sugar :SelectingIngredients
+                         :make-drink :MakingDrink}
+  :MakingDrink {:shutdown :ShutDown
+                :complete-machine :MadeDrink}
+  :MadeDrink {:shutdown :ShutDown}
+  :Shutdown {}})
+
+(def rules
+  {:MakingDrink #(future (Thread/sleep 10000) (reset! node-atom :MadeDrink))
+   :MadeDrink #(do @node-atom)})
+
+(defn next-node
+  [graph node edge]
+  (let [n (get-in graph [node (keyword edge)])
+        f (when-let [rule (get rules n)] (apply rule []))]
+    (cond
+      (keyword? f) f
+      (future? f)  n
+      :else        n)))
+
+(defn result
+  [graph node]
+  {:node node
+   :_links (into {} (for [edge (keys (node graph))]
+     {edge {:method "post"
+            :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
+            :body (str "{\"event\": \"" (name edge) "\"}")}}))})
+
+{
+  "api" {
+    "drinkmachine" {
+      :get #(respond % 200 (result graph @node-atom))
+    }
+    "drinkmachine/${uuid}" {
+      :post #(if-let [n (next-node graph @node-atom (body-param % "event"))]
+              (do (reset! node-atom n)
+                  (respond % 200 (result graph n)))
+              (respond % 400 (result graph @node-atom)))
+    }
+  }
+}
