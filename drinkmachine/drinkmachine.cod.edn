@@ -1,0 +1,17 @@
+{
+  :vars {
+    "uuid" {:type :Uuid}
+  }
+  "api" {
+    :rsp {:headers {"Content-Type" "application/json"}}
+    "drinkmachine" {
+      :get {:rsp {:200 {}}}
+    }
+    "drinkmachine/${uuid}" {
+      :post {
+        :req {:headers {"Content-Type" "application/json"}}
+        :rsp {:200 {} :400 {}}
+      }
+    }
+  }
+}
