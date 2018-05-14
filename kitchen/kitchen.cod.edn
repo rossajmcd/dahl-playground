@@ -1,0 +1,17 @@
+{
+  :vars {
+    "uuid" {:type :Uuid}
+  }
+  "api" {
+    :rsp {:headers {"Content-Type" "application/json"}}
+    "kitchen" {
+      :get {:rsp {:200 {}}}
+    }
+    "kitchen/${uuid}" {
+      :post {
+        :req {:headers {"Content-Type" "application/json"}}
+        :rsp {:200 {} :400 {}}
+      }
+    }
+  }
+}
