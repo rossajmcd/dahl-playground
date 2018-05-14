@@ -3,15 +3,6 @@
             [fsmviz.core :as viz]
             [dahlplayground.core :refer [next-node]]))
 
-(def drink-machine-config
-  {nil {:init :Ready}
-   :Ready {:make-tea :MakingTea
-           :make-coffee :MakingCoffee}
-   :MakingTea {:get-status :MakingTea
-               :prepared :MadeTea}
-   :MakingCoffee {:get-status :MakingCoffee
-                  :prepared :MadeCoffee}})
-
 (def better-drink-machine
   {nil {:init :Ready}
    :Ready {:make-tea :MakingTea
@@ -25,8 +16,20 @@
                           :completing-coffee :MadeCoffee
                           :erroring-coffee :ErroredCoffe}})
 
+(def ingredients-drink-machine
+  {nil {:init :Ready}
+   :Ready {:select-ingredients :SelectingIngredients}
+   :SelectingIngredients {:add-beverage :SelectingIngredients
+                          :add-milk :SelectingIngredients
+                          :add-sugar :SelectingIngredients
+                          :make-drink :MakingDrink}
+   :MakingDrink {:shutdown :ShutDown
+                 :complete :MadeDrink}
+   :MadeDrink {:shutdown :ShutDown}
+   :Shutdown {}})
+
 (deftest blurb
-  (viz/generate-image better-drink-machine
+  (viz/generate-image ingredients-drink-machine
                       "fsm.png")
-  (is (= (next-node drink-machine-config nil :init) :Ready))
-  (is (= (next-node drink-machine-config :Ready :make-tea) :MakingTea)))
+  (is (= (next-node better-drink-machine nil :init) :Ready))
+  (is (= (next-node better-drink-machine :Ready :make-tea) :MakingTea)))
