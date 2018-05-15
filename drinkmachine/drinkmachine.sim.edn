@@ -4,6 +4,8 @@
 
 (def atom-nodes (atom [{:Ready nil}]))
 
+(defn current-node [nodes] (last nodes))
+
 (def graph
  {:Ready {:select-ingredients :SelectingIngredients}
   :SelectingIngredients {:add-beverage-required :SelectingIngredients
@@ -23,8 +25,6 @@
   {:add-beverage-required {:beverage #{"tea" "coffee"}}
    :add-milk {:milk #{"none" "semi" "full"}}
    :add-sugar {:sugar #{0 1 2}}})
-
-(defn current-node [nodes] (last nodes))
 
 (defn next-node
   [graph node edge]
