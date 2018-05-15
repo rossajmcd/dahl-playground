@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]
             [protean.api.transformation.sim :refer :all]))
 
-(def node-atom (atom :Ready))
+(def atom-nodes (atom [{:Ready nil}]))
 
 (def graph
  {:Ready {:select-ingredients :SelectingIngredients}
@@ -16,28 +16,30 @@
   :Shutdown {}})
 
 (def rules
-  {:MakingDrink #(future (Thread/sleep 10000) (reset! node-atom :MadeDrink))
-   :MadeDrink #(do @node-atom)})
+  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes conj {:MadeDrink nil}))
+   :MadeDrink #(current-node @atom-nodes)})
 
 (def bodies
   {:add-beverage-required {:beverage #{"tea" "coffee"}}
    :add-milk {:milk #{"none" "semi" "full"}}
    :add-sugar {:sugar #{0 1 2}}})
 
+(defn current-node [nodes] (last nodes))
+
 (defn next-node
   [graph node edge]
-  (let [n (get-in graph [node (keyword edge)])
+  (let [n (get-in graph [(first (keys node)) (keyword edge)])
         f (when-let [rule (get rules n)] (apply rule []))]
     (cond
-      (keyword? f) f
-      (future? f)  n
-      :else        n)))
+      (keyword? f) {f nil}
+      (future? f)  {n nil}
+      :else        {n nil})))
 
 (defn result
   [graph node]
-  (let [edges (remove #(str/includes? (name %) "-machine") (keys (node graph)))]
+  (let [edges (remove #(str/includes? (name %) "-machine") (keys (get graph (first (keys node)))))]
     {:resource "drinkmachine"
-     :state node
+     :state @atom-nodes
      :controls (into {} (for [edge edges]
        {edge {:method "post"
               :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
@@ -46,21 +48,22 @@
 {
   "api" {
     "drinkmachine" {
-      :get #(respond % 200 (result graph @node-atom))
+      :get #(respond % 200 (result graph (current-node @atom-nodes)))
     }
     "drinkmachine/${uuid}" {
       :post (fn [req]
         (let [event  (body-param req "event")
-              next-n (next-node graph @node-atom event)
+              curr-n (current-node @atom-nodes)
+              next-n (next-node graph curr-n event)
               errors (->> (get bodies (keyword event))
                           (remove (fn [[k vs]] (.contains vs (body-param req (name k)))))
                           (map (fn [[k vs]] (str (name k) ": '" (body-param req (name k)) "' does not match one of: [" (str/join ", " vs) "]")))
                           seq)]
           (cond
-            (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (@node-atom graph)))) "]")}))
-            errors        (respond req 400 (merge {:errors errors} (result graph @node-atom)))
+            (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (get graph (first (keys curr-n)))))) "]")}))
+            errors        (respond req 400 (merge {:errors errors} (result graph curr-n)))
             :else         (do
-                            (reset! node-atom next-n)
+                            (swap! atom-nodes conj {(first (keys next-n)) (dissoc (body-clj req true) :event)})
                             (respond req 200 (result graph next-n))))))
     }
   }
