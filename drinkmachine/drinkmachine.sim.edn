@@ -19,6 +19,11 @@
   {:MakingDrink #(future (Thread/sleep 10000) (reset! node-atom :MadeDrink))
    :MadeDrink #(do @node-atom)})
 
+(def bodies
+  {:add-beverage-required {:beverage #{"tea" "coffee"}}
+   :add-milk {:milk #{"none" "semi" "full"}}
+   :add-sugar {:sugar #{0 1 2}}})
+
 (defn next-node
   [graph node edge]
   (let [n (get-in graph [node (keyword edge)])
@@ -29,14 +34,14 @@
       :else        n)))
 
 (defn result
- [graph node]
- (let [edges (remove #(str/includes? (name %) "-machine") (keys (node graph)))]
-   {:resource "drinkmachine"
-    :state node
-    :controls (into {} (for [edge edges]
-      {edge {:method "post"
-             :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-             :body (str "{\"event\": \"" (name edge) "\"}")}}))}))
+  [graph node]
+  (let [edges (remove #(str/includes? (name %) "-machine") (keys (node graph)))]
+    {:resource "drinkmachine"
+     :state node
+     :controls (into {} (for [edge edges]
+       {edge {:method "post"
+              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
+              :body (clojure.data.json/write-str (merge {:event edge} (edge bodies)))}}))}))
 
 {
   "api" {
@@ -44,10 +49,19 @@
       :get #(respond % 200 (result graph @node-atom))
     }
     "drinkmachine/${uuid}" {
-      :post #(if-let [n (next-node graph @node-atom (body-param % "event"))]
-              (do (reset! node-atom n)
-                  (respond % 200 (result graph n)))
-              (respond % 400 (result graph @node-atom)))
+      :post (fn [req]
+        (let [event  (body-param req "event")
+              next-n (next-node graph @node-atom event)
+              errors (->> (get bodies (keyword event))
+                          (remove (fn [[k vs]] (.contains vs (body-param req (name k)))))
+                          (map (fn [[k vs]] (str (name k) ": '" (body-param req (name k)) "' does not match one of: [" (str/join ", " vs) "]")))
+                          seq)]
+          (cond
+            (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (@node-atom graph)))) "]")}))
+            errors        (respond req 400 (merge {:errors errors} (result graph @node-atom)))
+            :else         (do
+                            (reset! node-atom next-n)
+                            (respond req 200 (result graph next-n))))))
     }
   }
 }
