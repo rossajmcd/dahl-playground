@@ -41,7 +41,7 @@
      :controls (into {} (for [edge edges]
        {edge {:method "post"
               :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-              :body (clojure.data.json/write-str (merge {:event edge} (edge bodies)))}}))}))
+              :body (clojure.data.json/write-str (merge {:event #{edge}} (edge bodies)))}}))}))
 
 {
   "api" {

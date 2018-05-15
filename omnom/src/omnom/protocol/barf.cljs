@@ -11,7 +11,7 @@
     #(let [t (get-in % [:controls :self :title])
            x (get-in % [:controls :self :href])]
       (if x
-        (-> % (dissoc :controls) (assoc :href (h/->Link x host "get" t)))
+        (-> % (dissoc :controls) (assoc :href (h/->Link x host "get" nil t)))
         (-> % (dissoc :controls))))
     embedded))
 
@@ -46,11 +46,14 @@
 
   Form
   (barf [_ {:keys [uri method body]} host]
-    [:form {:onSubmit (fn [e]
-                        (.preventDefault e)
-                        (let [d (.-value (js/document.getElementById "payload"))]
-                          (rf/dispatch [:handler-with-http uri method d])))}
-      [:div {:class "form-group"}
-        [:label {:for "payload"} "Body"]
-        [:textarea {:id "payload" :name "payload" :class "form-control" :rows 10 :defaultValue body}]]
-      [:button {:type "submit" :id "send-btn" :class "btn btn-primary float-right"} "Send"]]))
+    (let [clj-body (js->clj (.parse js/JSON body) :keywordize-keys true)
+          example (into {} (map (fn [[k v]] {k (first v)}) clj-body))
+          json (.stringify js/JSON (clj->js example))]
+      [:form {:onSubmit (fn [e]
+                          (.preventDefault e)
+                          (let [d (.-value (js/document.getElementById "payload"))]
+                            (rf/dispatch [:handler-with-http uri method d])))}
+        [:div {:class "form-group"}
+          [:label {:for "payload"} "Body"]
+          [:textarea {:id "payload" :name "payload" :class "form-control" :rows 10 :defaultValue json}]]
+        [:button {:type "submit" :id "send-btn" :class "btn btn-primary float-right"} "Send"]])))
