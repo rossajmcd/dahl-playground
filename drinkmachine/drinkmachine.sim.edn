@@ -18,8 +18,7 @@
   :Shutdown {}})
 
 (def rules
-  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes conj {:MadeDrink nil}))
-   :MadeDrink #(current-node @atom-nodes)})
+  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes conj {:MadeDrink nil}))})
 
 (def bodies
   {:add-beverage-required {:beverage #{"tea" "coffee"}}
@@ -45,6 +44,13 @@
               :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
               :body (clojure.data.json/write-str (merge {:event #{edge}} (edge bodies)))}}))}))
 
+(defn update-atom
+  [a b]
+  (let [[k v] (first b)]
+    (if-let [idx (some #(when (get % k) (.indexOf a %)) a)]
+      (update-in a [idx k] merge v)
+      (conj a b))))
+
 {
   "api" {
     "drinkmachine" {
@@ -62,8 +68,8 @@
           (cond
             (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (get graph (first (keys curr-n)))))) "]")}))
             errors        (respond req 400 (merge {:errors errors} (result graph curr-n)))
-            :else         (do
-                            (swap! atom-nodes conj {(first (keys next-n)) (dissoc (body-clj req true) :event)})
+            :else         (let [data {(first (keys next-n)) (dissoc (body-clj req true) :event)}]
+                            (swap! atom-nodes update-atom data)
                             (respond req 200 (result graph next-n))))))
     }
   }
