@@ -4,73 +4,80 @@
 
 (def atom-nodes (atom [{:Ready nil}]))
 
-(defn current-node [nodes] (last nodes))
+(defn current-node-key
+  [nodes]
+  (first (keys (last nodes))))
+
+(defn next-node-key
+  [graph node-key edge]
+  (get-in graph [node-key (keyword edge)]))
 
 (def graph
- {:Ready {:select-ingredients :SelectingIngredients}
-  :SelectingIngredients {:add-beverage-required :SelectingIngredients
-                         :add-milk :SelectingIngredients
-                         :add-sugar :SelectingIngredients
-                         :make-drink :MakingDrink}
-  :MakingDrink {:shutdown :ShutDown
-                :complete-machine :MadeDrink}
-  :MadeDrink {:shutdown :ShutDown}
-  :Shutdown {}})
+  {:Ready {:select-ingredients :SelectingIngredients}
+   :SelectingIngredients {:add-beverage-required :SelectingIngredients
+                          :add-milk :SelectingIngredients
+                          :add-sugar :SelectingIngredients
+                          :make-drink :MakingDrink}
+   :MakingDrink {:shutdown :ShutDown
+                 :complete-machine :MadeDrink}
+   :MadeDrink {:shutdown :ShutDown}
+   :Shutdown {}})
 
-(def rules
-  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes conj {:MadeDrink nil}))})
-
-(def bodies
-  {:add-beverage-required {:beverage #{"tea" "coffee"}}
-   :add-milk {:milk #{"none" "semi" "full"}}
-   :add-sugar {:sugar #{0 1 2}}})
-
-(defn next-node
-  [graph node edge]
-  (let [n (get-in graph [(first (keys node)) (keyword edge)])
-        f (when-let [rule (get rules n)] (apply rule []))]
-    (cond
-      (keyword? f) {f nil}
-      (future? f)  {n nil}
-      :else        {n nil})))
-
-(defn result
-  [graph node]
-  (let [edges (remove #(str/includes? (name %) "-machine") (keys (get graph (first (keys node)))))]
-    {:resource "drinkmachine"
-     :state @atom-nodes
-     :controls (into {} (for [edge edges]
-       {edge {:method "post"
-              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-              :body (clojure.data.json/write-str (merge {:event #{edge}} (edge bodies)))}}))}))
-
-(defn update-atom
+(defn update-node
   [a b]
   (let [[k v] (first b)]
     (if-let [idx (some #(when (get % k) (.indexOf a %)) a)]
       (update-in a [idx k] merge v)
       (conj a b))))
 
+(def rules
+  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes update-node {:MadeDrink nil})) ;; TODO ensure only triggers once
+   :SelectingIngredients #(do {:SelectingIngredients (dissoc (get graph :SelectingIngredients) (when-not (get-in (last @atom-nodes) [:SelectingIngredients :beverage]) :make-drink))})})
+
+(def bodies
+  {:SelectingIngredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
+                          :add-milk {:milk #{"none" "semi" "full"}}
+                          :add-sugar {:sugar #{0 1 2}}}})
+
+(defn apply-rule
+  [graph node-key rules]
+  (let [r (when-let [rule (get rules node-key)] (apply rule []))]
+    (cond
+      (nil? node-key) node-key
+      (map? r)        r
+      (future? r)     {node-key (get graph node-key)}
+      :else           {node-key (get graph node-key)})))
+
+(defn result
+  [graph node-key bodies]
+  (let [rule (apply-rule graph node-key rules)
+        edges (remove #(or (nil? %) (str/includes? (name %) "-machine")) (flatten (map keys (vals rule))))]
+    {:resource "drinkmachine"
+     :state @atom-nodes
+     :controls (into {} (for [edge edges]
+       {edge {:method "post"
+              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
+              :body (clojure.data.json/write-str (merge {:event #{edge}} (get-in bodies [node-key edge])))}}))}))
 {
   "api" {
     "drinkmachine" {
-      :get #(respond % 200 (result graph (current-node @atom-nodes)))
+      :get #(respond % 200 (result graph (current-node-key @atom-nodes) bodies))
     }
     "drinkmachine/${uuid}" {
       :post (fn [req]
         (let [event  (body-param req "event")
-              curr-n (current-node @atom-nodes)
-              next-n (next-node graph curr-n event)
-              errors (->> (get bodies (keyword event))
+              curr-n (current-node-key @atom-nodes)
+              next-n (next-node-key graph curr-n event)
+              errors (->> (get-in bodies [curr-n (keyword event)])
                           (remove (fn [[k vs]] (.contains vs (body-param req (name k)))))
                           (map (fn [[k vs]] (str (name k) ": '" (body-param req (name k)) "' does not match one of: [" (str/join ", " vs) "]")))
                           seq)]
           (cond
-            (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (get graph (first (keys curr-n)))))) "]")}))
-            errors        (respond req 400 (merge {:errors errors} (result graph curr-n)))
-            :else         (let [data {(first (keys next-n)) (dissoc (body-clj req true) :event)}]
-                            (swap! atom-nodes update-atom data)
-                            (respond req 200 (result graph next-n))))))
+            (nil? next-n) (respond req 400 (merge {:errors (str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (get graph curr-n)))) "]")}))
+            errors        (respond req 400 (merge {:errors errors} (result graph curr-n bodies)))
+            :else         (let [data {next-n (dissoc (body-clj req true) :event)}]
+                            (swap! atom-nodes update-node data)
+                            (respond req 200 (result graph next-n bodies))))))
     }
   }
 }
