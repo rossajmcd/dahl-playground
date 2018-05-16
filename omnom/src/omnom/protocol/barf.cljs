@@ -6,15 +6,6 @@
 
 ;; Private functions
 
-(defn- format-embedded [embedded host]
-  (mapv
-    #(let [t (get-in % [:controls :self :title])
-           x (get-in % [:controls :self :href])]
-      (if x
-        (-> % (dissoc :controls) (assoc :href (h/->Link x host "get" nil t)))
-        (-> % (dissoc :controls))))
-    embedded))
-
 (defn- format-links
   [links host]
   (set (for [[k {:keys [href method body title]}] links]
@@ -32,16 +23,12 @@
 
   DahlJson
   (barf [_ json host]
-    (let [title (get-in json [:controls :self :href])
-          entity (dissoc json :controls :_embedded)
-          links (dissoc (:controls json) :self)]
+    (let [links (:controls json)
+          states (:state json)]
       [:div
-        (h/hiccup (h/->H3LinkTitle title host))
-        (h/hiccup entity)
-        (for [[embed-title embed-xs] (:_embedded json)]
-          (h/hiccup [(h/->H2Title (u/name2 embed-title))
-                     (format-embedded embed-xs host)]))
-        (when links (h/hiccup (h/->H2Title "links")))
+        (h/hiccup (h/->H2Title "States"))
+        (h/hiccup states)
+        (when links (h/hiccup (h/->H2Title "Controls")))
         (h/hiccup (format-links links host))]))
 
   Form

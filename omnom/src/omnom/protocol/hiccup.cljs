@@ -41,16 +41,6 @@
   nil
   (hiccup [_] [:span nil])
 
-  H1LinkTitle
-  (hiccup
-    [{:keys [title host method body]}]
-    [:h1 [:a {:href "#" :onClick #(click host title method body)} title]])
-
-  H3LinkTitle
-  (hiccup
-    [{:keys [title host method body]}]
-    [:h3 [:a {:href "#" :onClick #(click host title method body)} title]])
-
   H2Title
   (hiccup [this] [:h2 (:title this)])
 

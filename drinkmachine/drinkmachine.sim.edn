@@ -13,11 +13,11 @@
   (get-in graph [node-key (keyword edge)]))
 
 (def graph
-  {:Ready {:select-ingredients :SelectingIngredients}
-   :SelectingIngredients {:add-beverage-required :SelectingIngredients
-                          :add-milk :SelectingIngredients
-                          :add-sugar :SelectingIngredients
-                          :make-drink :MakingDrink}
+  {:Ready {:select-ingredients :Ingredients}
+   :Ingredients {:add-beverage-required :Ingredients
+                 :add-milk :Ingredients
+                 :add-sugar :Ingredients
+                 :make-drink :MakingDrink}
    :MakingDrink {:shutdown :ShutDown
                  :complete-machine :MadeDrink}
    :MadeDrink {:shutdown :ShutDown}
@@ -32,12 +32,12 @@
 
 (def rules
   {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes update-node {:MadeDrink nil})) ;; TODO ensure only triggers once
-   :SelectingIngredients #(do {:SelectingIngredients (dissoc (get graph :SelectingIngredients) (when-not (get-in (last @atom-nodes) [:SelectingIngredients :beverage]) :make-drink))})})
+   :Ingredients #(do {:Ingredients (dissoc (get graph :Ingredients) (when-not (get-in (last @atom-nodes) [:Ingredients :beverage]) :make-drink))})})
 
 (def bodies
-  {:SelectingIngredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
-                          :add-milk {:milk #{"none" "semi" "full"}}
-                          :add-sugar {:sugar #{0 1 2}}}})
+  {:Ingredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
+                 :add-milk {:milk #{"none" "semi" "full"}}
+                 :add-sugar {:sugar #{0 1 2}}}})
 
 (defn apply-rule
   [graph node-key rules]
