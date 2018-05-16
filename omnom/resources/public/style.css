@@ -7,7 +7,7 @@ html {
 }
 
 .content {
-  margin-top: 60px;
+  margin-top: 70px;
   margin-bottom: 100px;
 }
 
@@ -33,67 +33,67 @@ footer {
   padding: 10px 0px 10px 0px;
 }
 
-@media (min-width: 770px) {
+@media (min-width: 800px) {
   nav input {
     width: 350px !important;
   }
 }
-@media (min-width: 800px) {
+@media (min-width: 850px) {
   nav input {
     width: 400px !important;
   }
 }
-@media (min-width: 850px) {
+@media (min-width: 900px) {
   nav input {
     width: 450px !important;
   }
 }
-@media (min-width: 900px) {
+@media (min-width: 950px) {
   nav input {
     width: 500px !important;
   }
 }
-@media (min-width: 950px) {
+@media (min-width: 1000px) {
   nav input {
     width: 550px !important;
   }
 }
-@media (min-width: 1000px) {
+@media (min-width: 1100px) {
   nav input {
     width: 600px !important;
   }
 }
-@media (min-width: 1050px) {
+@media (min-width: 1150px) {
   nav input {
     width: 650px !important;
   }
 }
-@media (min-width: 1100px) {
+@media (min-width: 1200px) {
   nav input {
     width: 700px !important;
   }
 }
-@media (min-width: 1150px) {
+@media (min-width: 1250px) {
   nav input {
     width: 750px !important;
   }
 }
-@media (min-width: 1200px) {
+@media (min-width: 1300px) {
   nav input {
     width: 800px !important;
   }
 }
-@media (min-width: 1250px) {
+@media (min-width: 1350px) {
   nav input {
     width: 850px !important;
   }
 }
-@media (min-width: 1350px) {
+@media (min-width: 1450px) {
   nav input {
     width: 950px !important;
   }
 }
-@media (min-width: 1400px) {
+@media (min-width: 1500px) {
   nav input {
     width: 1000px !important;
   }
