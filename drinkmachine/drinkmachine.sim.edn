@@ -31,8 +31,14 @@
    :Shutdown {}})
 
 (def rules
-  {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes update-node {:MadeDrink nil})) ;; TODO ensure only triggers once
-   :Ingredients #(do {:Ingredients (dissoc (get graph :Ingredients) (when-not (get-in (last @atom-nodes) [:Ingredients :beverage]) :make-drink))})})
+  {:MakingDrink #(future
+                   (Thread/sleep 10000)
+                   (when (= (current-node-key @atom-nodes) :MakingDrink)
+                     (swap! atom-nodes update-node {:MadeDrink nil})))
+   :Ingredients #(do
+                   {:Ingredients (dissoc
+                     (get graph :Ingredients)
+                     (when-not (get-in (last @atom-nodes) [:Ingredients :beverage]) :make-drink))})})
 
 (def bodies
   {:Ingredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
@@ -50,14 +56,16 @@
 
 (defn result
   [graph node-key bodies]
-  (let [rule (apply-rule graph node-key rules)
-        edges (remove #(or (nil? %) (str/includes? (name %) "-machine")) (flatten (map keys (vals rule))))]
+  (let [result (apply-rule graph node-key rules)
+        all (flatten (map keys (vals result)))
+        edges (remove #(or (nil? %) (str/includes? (name %) "-machine")) all)]
     {:resource "drinkmachine"
      :state @atom-nodes
      :controls (into {} (for [edge edges]
        {edge {:method "post"
               :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-              :body (clojure.data.json/write-str (merge {:event #{edge}} (get-in bodies [node-key edge])))}}))}))
+              :body (clojure.data.json/write-str
+                      (merge {:event #{edge}} (get-in bodies [node-key edge])))}}))}))
 {
   "api" {
     "drinkmachine" {
