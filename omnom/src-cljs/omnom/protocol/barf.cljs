@@ -1,15 +1,7 @@
 (ns omnom.protocol.barf
-  (:require [clojure.string :refer [lower-case replace split upper-case]]
-            [re-frame.core :as rf]
+  (:require [re-frame.core :as rf]
             [omnom.protocol.hiccup :as h]
             [omnom.utils :as u]))
-
-;; Private functions
-
-(defn- format-links
-  [links host]
-  (set (for [[k {:keys [href method body title]}] links]
-    {(u/field-title k) (h/->Link href host method body title)})))
 
 ;; Barfing records
 
@@ -22,19 +14,16 @@
 (extend-protocol Barf
 
   DahlJson
-  (barf [_ json host]
-    (let [errors (:errors json)
-          links (:controls json)
-          states (:state json)]
-      [:div
-        (when-not (empty? errors) (h/hiccup (h/->Error errors)))
-        (h/hiccup (h/->Title "States"))
-        (h/hiccup states)
-        (when-not (empty? links) (h/hiccup (h/->Title "Controls")))
-        (h/hiccup (format-links links host))]))
+  (barf [_ {:keys [states controls]} host]
+    [:div
+      (h/hiccup (h/->Title "States"))
+      (h/hiccup states)
+      (when-not (empty? controls) (h/hiccup (h/->Title "Controls")))
+      (h/hiccup (set (for [[k {:keys [href method body title]}] controls]
+        {(u/field-title k) (h/->Link href host method body title)})))])
 
   Form
-  (barf [_ {:keys [uri method body]} host]
+  (barf [_ {:keys [uri method body errors]} host]
     (let [clj-body (js->clj (.parse js/JSON body) :keywordize-keys true)
           example (into {} (map (fn [[k v]] {k (first v)}) clj-body))
           json (.stringify js/JSON (clj->js example))]
@@ -42,6 +31,7 @@
                           (.preventDefault e)
                           (let [d (.-value (js/document.getElementById "payload"))]
                             (rf/dispatch [:handler-with-http uri method d])))}
+        (when-not (empty? errors) (h/hiccup (h/->Error errors)))
         [:div {:class "form-group"}
           [:label {:for "payload"} "Body"]
           [:textarea {:id "payload" :name "payload" :class "form-control" :rows 10 :defaultValue json}]]

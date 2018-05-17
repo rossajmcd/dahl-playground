@@ -22,7 +22,9 @@
 (rf/reg-event-db
   :bad-http-result
   (fn [db [_ {:keys [response status]}]]
-    (assoc db :api-body response :api-form nil)))
+    (if-let [errors (:errors response)]
+      (assoc-in db [:api-form :errors] errors)
+      (assoc db :api-body response :api-form nil))))
 
 (rf/reg-event-fx
   :handler-with-http

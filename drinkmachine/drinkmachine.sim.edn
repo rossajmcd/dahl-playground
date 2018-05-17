@@ -60,7 +60,7 @@
         all (flatten (map keys (vals result)))
         edges (remove #(or (nil? %) (str/includes? (name %) "-machine")) all)]
     {:resource "drinkmachine"
-     :state @atom-nodes
+     :states @atom-nodes
      :controls (into {} (for [edge edges]
        {edge {:method "post"
               :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
