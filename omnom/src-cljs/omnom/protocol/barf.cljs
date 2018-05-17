@@ -23,9 +23,11 @@
 
   DahlJson
   (barf [_ json host]
-    (let [links (:controls json)
+    (let [errors (:errors json)
+          links (:controls json)
           states (:state json)]
       [:div
+        (when-not (empty? errors) (h/hiccup (h/->Error errors)))
         (h/hiccup (h/->Title "States"))
         (h/hiccup states)
         (when-not (empty? links) (h/hiccup (h/->Title "Controls")))

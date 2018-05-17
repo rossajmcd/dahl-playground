@@ -27,6 +27,8 @@
 
 ;; Hiccup records
 
+(defrecord Error [errors])
+
 (defrecord Title [title])
 
 (defrecord Link [title host method body title-attr])
@@ -39,6 +41,12 @@
 
   Title
   (hiccup [this] [:h2 (:title this)])
+
+  Error
+  (hiccup
+    [this]
+    [:div {:class "alert alert-danger" :role "alert"}
+          (hiccup (:errors this))])
 
   Link
   (hiccup
