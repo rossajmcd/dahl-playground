@@ -4,7 +4,8 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [cemerick.url :as url]
-            [omnom.protocol.barf :as b]))
+            [omnom.protocol.barf :as b]
+            [omnom.macro :include-macros true :refer [project-version]]))
 
 ;; ------------- Event ---------------------------------------------------------
 
@@ -60,7 +61,7 @@
     form (b/barf (b/->Form "dahl+json") form @(rf/subscribe [:api-host]))
     :else "Enter the starting point of your API and hit explore.")))
 
-(defn version [] "v0.1.0-SNAPSHOT")  ;; (str "v" (project-version))
+(defn version [] (str "v" (project-version)))
 
 ;; ------------- Public Api ----------------------------------------------------
 
