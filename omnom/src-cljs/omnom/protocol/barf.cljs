@@ -28,7 +28,7 @@
       [:div
         (h/hiccup (h/->Title "States"))
         (h/hiccup states)
-        (when links (h/hiccup (h/->Title "Controls")))
+        (when-not (empty? links) (h/hiccup (h/->Title "Controls")))
         (h/hiccup (format-links links host))]))
 
   Form
