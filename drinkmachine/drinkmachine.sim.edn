@@ -12,6 +12,13 @@
   [graph node-key edge]
   (get-in graph [node-key (keyword edge)]))
 
+(defn update-node
+  [a b]
+  (let [[k v] (first b)]
+    (if-let [idx (some #(when (get % k) (.indexOf a %)) a)]
+      (update-in a [idx k] merge v)
+      (conj a b))))
+
 (def graph
   {:Ready {:select-ingredients :Ingredients}
    :Ingredients {:add-beverage-required :Ingredients
@@ -22,13 +29,6 @@
                  :complete-machine :MadeDrink}
    :MadeDrink {:shutdown :ShutDown}
    :Shutdown {}})
-
-(defn update-node
-  [a b]
-  (let [[k v] (first b)]
-    (if-let [idx (some #(when (get % k) (.indexOf a %)) a)]
-      (update-in a [idx k] merge v)
-      (conj a b))))
 
 (def rules
   {:MakingDrink #(future (Thread/sleep 10000) (swap! atom-nodes update-node {:MadeDrink nil})) ;; TODO ensure only triggers once
