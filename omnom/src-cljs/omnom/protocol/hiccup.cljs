@@ -27,11 +27,7 @@
 
 ;; Hiccup records
 
-(defrecord H1LinkTitle [title host])
-
-(defrecord H3LinkTitle [title host])
-
-(defrecord H2Title [title])
+(defrecord Title [title])
 
 (defrecord Link [title host method body title-attr])
 
@@ -41,7 +37,7 @@
   nil
   (hiccup [_] [:span nil])
 
-  H2Title
+  Title
   (hiccup [this] [:h2 (:title this)])
 
   Link

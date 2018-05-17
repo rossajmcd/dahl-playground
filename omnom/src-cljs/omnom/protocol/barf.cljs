@@ -26,9 +26,9 @@
     (let [links (:controls json)
           states (:state json)]
       [:div
-        (h/hiccup (h/->H2Title "States"))
+        (h/hiccup (h/->Title "States"))
         (h/hiccup states)
-        (when links (h/hiccup (h/->H2Title "Controls")))
+        (when links (h/hiccup (h/->Title "Controls")))
         (h/hiccup (format-links links host))]))
 
   Form
