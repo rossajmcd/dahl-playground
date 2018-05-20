@@ -4,13 +4,15 @@
 
 (def atom-nodes (atom [{:Ready nil}]))
 
+(def atom-edges (atom nil))
+
 (defn current-node-key
   [nodes]
   (first (keys (last nodes))))
 
 (defn next-node-key
   [graph node-key edge]
-  (get-in graph [node-key (keyword edge)]))
+  (get-in graph [node-key edge]))
 
 (defn update-node
   [a b]
@@ -59,13 +61,14 @@
   (let [result (apply-rule graph node-key rules)
         all (flatten (map keys (vals result)))
         edges (remove #(or (nil? %) (str/includes? (name %) "-machine")) all)]
+    (reset! atom-edges (into {} (for [edge edges] {edge (str (java.util.UUID/randomUUID))})))
     {:resource "drinkmachine"
      :states @atom-nodes
      :controls (into {} (for [edge edges]
        {edge {:method "post"
-              :href "/api/drinkmachine/ec0e7fbc-a99d-4dd2-bea3-716bd6e2fe2c"
-              :body (clojure.data.json/write-str
-                      (merge {:event #{edge}} (get-in bodies [node-key edge])))}}))}))
+              :href (str "/api/drinkmachine/" (get @atom-edges edge))
+              :body (when-let [b (get-in bodies [node-key edge])]
+                      (clojure.data.json/write-str b))}}))}))
 {
   "api" {
     "drinkmachine" {
@@ -73,19 +76,20 @@
     }
     "drinkmachine/${uuid}" {
       :post (fn [req]
-        (let [event  (body-param req "event")
+        (let [uuid (path-param req "uuid")
+              edge (get (clojure.set/map-invert @atom-edges) uuid)
               curr-n (current-node-key @atom-nodes)
-              next-n (next-node-key graph curr-n event)
-              errors (->> (get-in bodies [curr-n (keyword event)])
+              errors (->> (get-in bodies [curr-n edge])
                           (remove (fn [[k vs]] (.contains vs (body-param req (name k)))))
                           (map (fn [[k vs]] (str (name k) ": '" (body-param req (name k)) "' does not match one of: [" (str/join ", " vs) "]")))
-                          (concat (when (nil? next-n) [(str "event: '" event "' does not match one of: [" (str/join ", " (mapv name (keys (get graph curr-n)))) "]")]))
                           seq)]
-          (if errors
-            (respond req 400 (merge {:errors errors} (result graph curr-n bodies)))
-            (let [data {next-n (dissoc (body-clj req true) :event)}]
-              (swap! atom-nodes update-node data)
-              (respond req 200 (result graph next-n bodies))))))
+          (cond
+            (nil? edge) (respond req 404 (assoc (result graph curr-n bodies) :errors [(str "uuid: '" uuid "' does not match one of: [" (str/join ", " (vals @atom-edges)) "]")]))
+            errors      (respond req 400 (assoc (result graph curr-n bodies) :errors errors))
+            :else       (let [next-n (next-node-key graph curr-n edge)
+                              data {next-n (body-clj req true)}]
+                           (swap! atom-nodes update-node data)
+                           (respond req 200 (result graph next-n bodies))))))
     }
   }
 }

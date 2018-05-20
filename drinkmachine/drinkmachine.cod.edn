@@ -10,7 +10,7 @@
     "drinkmachine/${uuid}" {
       :post {
         :req {:headers {"Content-Type" "application/json"}}
-        :rsp {:200 {} :400 {}}
+        :rsp {:200 {} :400 {} :404 {}}
       }
     }
   }

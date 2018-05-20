@@ -14,8 +14,9 @@
 (extend-protocol Barf
 
   DahlJson
-  (barf [_ {:keys [states controls]} host]
+  (barf [_ {:keys [states controls errors]} host]
     [:div
+      (when-not (empty? errors) (h/hiccup (h/->Error errors)))
       (h/hiccup (h/->Title "States"))
       (h/hiccup states)
       (when-not (empty? controls) (h/hiccup (h/->Title "Controls")))

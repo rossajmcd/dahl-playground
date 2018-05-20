@@ -22,8 +22,8 @@
 (rf/reg-event-db
   :bad-http-result
   (fn [db [_ {:keys [response status]}]]
-    (if-let [errors (:errors response)]
-      (assoc-in db [:api-form :errors] errors)
+    (if (= status 400)
+      (assoc-in db [:api-form :errors] (:errors response))
       (assoc db :api-body response :api-form nil))))
 
 (rf/reg-event-fx
@@ -59,9 +59,10 @@
   (let [body @(rf/subscribe [:api-body])
         form @(rf/subscribe [:api-form])]
   (cond
-    body (b/barf (b/->DahlJson "dahl+json") body @(rf/subscribe [:api-host]))
-    form (b/barf (b/->Form "dahl+json") form @(rf/subscribe [:api-host]))
-    :else "Enter the starting point of your API and hit explore.")))
+    body         (b/barf (b/->DahlJson "dahl+json") body @(rf/subscribe [:api-host]))
+    (:body form) (b/barf (b/->Form "dahl+json") form @(rf/subscribe [:api-host]))
+    form         (rf/dispatch [:handler-with-http (:uri form) (:method form) nil])
+    :else        "Enter the starting point of your API and hit explore.")))
 
 (defn version [] (str "v" (project-version)))
 
