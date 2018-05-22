@@ -11,16 +11,21 @@ GET /drinkmachine
 
 {
   :resource "/drinkmachine"
-  :state {:state "Ready"}
-  :controls [
+  :state {:"Ready" {}}
+  :controls
     {
-      :rel "select-ingredients"
-      :method "POST"
-      :href "/drinkmachine"
-      :requires {:event "select-ingredients"}
+      "select-ingredients" {
+        :method "POST"
+        :href "/drinkmachine"
+        :required {
+          :body {:event "select-ingredients"}
+        }
+      }
     }
-  ]
 }
+
+
+
 
 
 ***** select ingredients *****
@@ -32,44 +37,51 @@ POST /drinkmachine
 }
 
 
+
 ***** Exposing the interface for select ingredients *****
 - N.B. No option to make drink as ingredients are not selected yet.
 
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
-	:state {:state "selecting-ingredients" :beverage "none" :milk "none" :sugar 0}
-	:controls [
-    {
-	    :rel "add-beverage"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "add-beverage"
-		    :beverage #{"none" "tea" "coffee"}
-		  }
+  :resource "/drinkmachine"
+  :state {"selecting-ingredients" {:beverage "none" :milk "none" :sugar 0}}
+  :controls {
+    "add-beverage" {
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {
+        :body {
+          :event "add-beverage"
+          :beverage #{"none" "tea" "coffee"}]
+        }
+      }
     }
-    {
-	    :rel "add-milk"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "add-milk"
-		    :milk #{"none" "semi" "full"}
-		  }
+
+
+    "add-milk" {
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {
+        :body {
+          :event "add-milk"
+          :milk #{"none" "semi" "full"}
+        }
+      }
     }
+
+
     {
-	    :rel "add-sugar"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
+      :rel "add-sugar"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
         :event "add-sugar"
-		    :sugar #{0 1 2}
-		  }
-    }
-  ]
-}
+        :sugar #{0 1 2}}}
+
+
+
+
 
 
 ***** add-beverage 'tea' *****
@@ -78,8 +90,8 @@ POST /drinkmachine
 
 {
     "event": "add-beverage"
-    "beverage": "tea"
-}
+    "beverage": "tea"}
+
 
 
 ***** Exposing the interface for select ingredients after adding tea *****
@@ -89,37 +101,37 @@ if we wanted without milk or sugar.
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
-	:state {:state "selecting-ingredients" :beverage "tea" :milk "none" :sugar 0}
-	:controls [
+  :resource "/drinkmachine"
+  :state {:state "selecting-ingredients" :beverage "tea" :milk "none" :sugar 0}
+  :controls []
     {
-	    :rel "add-milk"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
+      :rel "add-milk"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
         :event "add-milk"
-		    :milk #{"none" "semi" "full"}
-		  }
-    }
+        :milk #{"none" "semi" "full"}}
+
+
     {
-	    :rel "add-sugar"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
+      :rel "add-sugar"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
         :event "add-sugar"
-		    :sugar #{0 1 2}
-		  }
-    }
+        :sugar #{0 1 2}}
+
+
     {
-	    :rel "make-drink"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "make-drink"
-		  }
-    }
-  ]
-}
+      :rel "make-drink"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
+        :event "make-drink"}}
+
+
+
+
 
 
 ***** add-milk 'semi' *****
@@ -128,8 +140,8 @@ POST /drinkmachine
 
 {
     "event": "add-milk"
-    "milk": "semi"
-}
+    "milk": "semi"}
+
 
 
 ***** Exposing the interface for select ingredients after adding milk *****
@@ -139,28 +151,28 @@ if we wanted without milk or sugar.
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
-	:state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 0}
-	:controls [
+  :resource "/drinkmachine"
+  :state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 0}
+  :controls []
     {
-	    :rel "add-sugar"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
+      :rel "add-sugar"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
         :event "add-sugar"
-		    :sugar #{0 1 2}
-		  }
-    }
+        :sugar #{0 1 2}}
+
+
     {
-	    :rel "make-drink"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "make-drink"
-		  }
-    }
-  ]
-}
+      :rel "make-drink"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
+        :event "make-drink"}}
+
+
+
+
 
 
 ***** add-sugar '1' *****
@@ -169,8 +181,8 @@ POST /drinkmachine
 
 {
     "event": "add-sugar"
-    "sugar": 1
-}
+    "sugar": 1}
+
 
 
 ***** Exposing the interface for select ingredients after adding sugar *****
@@ -180,19 +192,19 @@ if we wanted without milk or sugar.
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
-	:state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 1}
-	:controls [
+  :resource "/drinkmachine"
+  :state {:state "selecting-ingredients" :beverage "tea" :milk "semi" :sugar 1}
+  :controls []
     {
-	    :rel "make-drink"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "make-drink"
-		  }
-    }
-  ]
-}
+      :rel "make-drink"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
+        :event "make-drink"}}
+
+
+
+
 
 
 ***** make-drink *****
@@ -200,8 +212,8 @@ GET /drinkmachine
 POST /drinkmachine
 
 {
-    "event": "make-drink"
-}
+    "event": "make-drink"}
+
 
 
 ***** Exposing the interface while making drink *****
@@ -214,19 +226,19 @@ emergency shutdown control though - lets pretend the cup is overfilling ?
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
+  :resource "/drinkmachine"
   :state {:state "making-drink" :beverage "tea" :milk "semi" :sugar 1}
-	:controls [
+  :controls []
     {
-	    :rel "shutdown"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "shutdown"
-		  }
-    }
-  ]
-}
+      :rel "shutdown"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
+        :event "shutdown"}}
+
+
+
+
 
 
 ***** Exposing the interface when drink is made *****
@@ -239,16 +251,12 @@ shutdown at this time.
 GET /drinkmachine
 
 {
-	:resource "/drinkmachine"
+  :resource "/drinkmachine"
   :state {:state "drink-ready" :beverage "tea" :milk "semi" :sugar 1}
-	:controls [
+  :controls []
     {
-	    :rel "shutdown"
-	    :method "POST"
-	    :href "/drinkmachine"
-	    :requires {
-        :event "shutdown"
-		  }
-    }
-  ]
-}
+      :rel "shutdown"
+      :method "POST"
+      :href "/drinkmachine"
+      :requires {}
+        :event "shutdown"}}
