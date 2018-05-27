@@ -1,0 +1,65 @@
+(ns drinkmachine.api
+  (:require [dahl :as d]
+            [protean.api.transformation.sim :refer :all]))
+
+(def entrypoint "api/drinkmachine")
+
+(def atom-nodes (atom [{:Ready nil}]))
+
+(def atom-edges (atom nil))
+
+(def graph
+  {:Ready {:select-ingredients :Ingredients}
+   :Ingredients {:add-beverage-required :Ingredients
+                 :add-milk :Ingredients
+                 :add-sugar :Ingredients
+                 :make-drink :MakingDrink}
+   :MakingDrink {:shutdown :ShutDown
+                 :complete-machine :MadeDrink}
+   :MadeDrink {:shutdown :ShutDown}
+   :Shutdown {}})
+
+(def rules
+  {:MakingDrink #(future
+                   (Thread/sleep 10000)
+                   (when (= (d/current-node-key @atom-nodes) :MakingDrink)
+                     (swap! atom-nodes d/update-node {:MadeDrink nil})))
+   :Ingredients #(do
+                   {:Ingredients (dissoc
+                     (get graph :Ingredients)
+                     (when-not (get-in (last @atom-nodes) [:Ingredients :beverage]) :make-drink))})})
+
+(def bodies
+  {:Ingredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
+                 :add-milk {:milk #{"none" "semi" "full"}}
+                 :add-sugar {:sugar #{0 1 2}}}})
+
+{
+  "api" {
+    "drinkmachine" {
+      :get (fn [req]
+        (let [nodes @atom-nodes
+              curr-n (d/current-node-key nodes)
+              uuids (reset! atom-edges (d/generate-uuids graph rules curr-n))]
+          (respond req 200 (d/result entrypoint nodes uuids curr-n bodies))))
+    }
+    "drinkmachine/${uuid}" {
+      :post (fn [req]
+        (let [uuid (path-param req "uuid")
+              body (body-clj req true)
+              nodes @atom-nodes
+              edges @atom-edges
+              edge (d/get-edge edges uuid)
+              curr-n (d/current-node-key nodes)
+              errors (when-let [e (d/errors curr-n bodies edge body uuid edges)]
+                       (assoc (d/result entrypoint nodes edges curr-n bodies) :errors e))]
+          (cond
+            (nil? edge) (respond req 404 errors)
+            errors      (respond req 400 errors)
+            :else       (let [next-n (d/next-node-key graph curr-n edge)
+                              states (swap! atom-nodes d/update-node {next-n body})
+                              uuids (reset! atom-edges (d/generate-uuids graph rules next-n))]
+                          (respond req 200 (d/result entrypoint states uuids next-n bodies))))))
+    }
+  }
+}

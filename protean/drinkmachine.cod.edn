@@ -1,13 +1,11 @@
 {
-  :vars {
-    "uuid" {:type :Uuid}
-  }
+  :vars {"uuid" {:type :Uuid}}
+  :rsp {:headers {"Content-Type" "application/json"}}
   "api" {
-    :rsp {:headers {"Content-Type" "application/json"}}
-    "toastermachine" {
+    "drinkmachine" {
       :get {:rsp {:200 {}}}
     }
-    "toastermachine/${uuid}" {
+    "drinkmachine/${uuid}" {
       :post {
         :req {:headers {"Content-Type" "application/json"}}
         :rsp {:200 {} :400 {} :404 {}}
