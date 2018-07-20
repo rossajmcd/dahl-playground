@@ -1,0 +1,16 @@
+{
+  :vars {"resource" {:type :String}
+         "uuid" {:type :Uuid}}
+  :rsp {:headers {"Content-Type" "application/json"}}
+  "api" {
+    "breakfast" {
+      :get {:rsp {:200 {}}}
+    }
+    "breakfast/${resource}/${uuid}" {
+      :post {
+        :req {:headers {"Content-Type" "application/json"}}
+        :rsp {:200 {} :400 {} :404 {}}
+      }
+    }
+  }
+}

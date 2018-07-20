@@ -1,0 +1,22 @@
+(ns breakfast.api
+  (:require [dahl :as d]
+            [protean.api.transformation.sim :refer :all]))
+
+(def entrypoint "api/breakfast")
+
+(def apis ["http://localhost:3000/api/drinkmachine"
+           "http://localhost:3000/api/toastermachine"])
+
+{
+  "api" {
+    "breakfast" {
+      :get #(respond % 200 (d/proxy-get entrypoint apis))
+    }
+    "breakfast/${resource}/${uuid}" {
+      :post #(respond % 200 (d/proxy-post entrypoint apis
+                                          (path-param % "resource")
+                                          (path-param % "uuid")
+                                          (body-clj % true)))
+    }
+  }
+}

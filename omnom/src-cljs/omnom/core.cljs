@@ -56,13 +56,18 @@
 
 (defn ui
   []
-  (let [body @(rf/subscribe [:api-body])
-        form @(rf/subscribe [:api-form])]
-  (cond
-    body         (b/barf (b/->DahlJson "dahl+json") body @(rf/subscribe [:api-host]))
-    (:body form) (b/barf (b/->Form "dahl+json") form @(rf/subscribe [:api-host]))
-    form         (rf/dispatch [:handler-with-http (:uri form) (:method form) nil])
-    :else        "Enter the starting point of your API and hit explore.")))
+  (let [bodies @(rf/subscribe [:api-body])
+        form @(rf/subscribe [:api-form])
+        host @(rf/subscribe [:api-host])]
+    (cond
+      (:body form)    (b/barf (b/->Form "dahl+json") form host)
+      form            (rf/dispatch [:handler-with-http (:uri form) (:method form) nil])
+      (empty? bodies) "Enter the starting point of your API and hit explore."
+      :else           [:ul {:class "list-unstyled"}
+                        (doall (for [[resource body] bodies]
+                          [:li {:key (name resource)}
+                            [:h1 (name resource)]
+                            (b/barf (b/->DahlJson "dahl+json") body host)]))])))
 
 (defn version [] (str "v" (project-version)))
 

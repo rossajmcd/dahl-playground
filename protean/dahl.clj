@@ -1,5 +1,6 @@
 (ns dahl
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clj-http.client :as http]))
 
 (defn current-node-key
   [nodes]
@@ -33,17 +34,28 @@
          (map (fn [[k vs]] (msg (name k) (get body k) vs)))
          seq)))
 
+(defn- get-resource
+  [entrypoint]
+  (last (str/split entrypoint #"/")))
+
 (defn- result
   [entrypoint states uuids node-key bodies]
   (let [edges (remove (fn [[k _]] (or (nil? k) (str/includes? (name k) "-machine"))) uuids)]
-    {:resource (last (str/split entrypoint #"/"))
+    {(get-resource entrypoint) {
      :states states
      :controls (into {} (for [[edge uuid] edges]
        {edge {:method "post"
               :href (str "/" entrypoint "/" uuid)
               :body (when-let [b (get-in bodies [node-key edge])]
-                      (clojure.data.json/write-str b))}}))}))
+                      (clojure.data.json/write-str b))}}))}}))
 
+(defn- proxy-links
+  [entrypoint apis raw-body]
+  (let [reg (re-pattern (str "(" (str/join "|" (map get-resource apis)) ")/.*"))]
+    (clojure.walk/prewalk #(if-let [f (and (string? %) (first (re-find reg %)))]
+                            (str "/" entrypoint "/" f)
+                            %)
+                          raw-body)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;; API ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -83,3 +95,18 @@
                         uuids (generate-uuids states graph rules next-n)
                         res (result entrypoint states uuids next-n bodies)]
                     {:status 200 :nodes states :edges uuids :result res}))))
+
+(defn proxy-get
+  [entrypoint apis]
+  (proxy-links entrypoint apis (into {} (map #(:body (http/get % {:as :json})) apis))))
+
+(defn proxy-post
+  [entrypoint apis resource uuid body]
+  (if-let [f (first (filter #(= (get-resource %) resource) apis))]
+    (let [a (http/post (str f "/" uuid) {:body (clojure.data.json/json-str body)
+                                         :headers {"Content-Type" "application/json"}
+                                         :as :json})
+          b (into {} (map #(:body (http/get % {:as :json}))
+                          (remove #(= (get-resource %) resource) apis)))]
+      (proxy-links entrypoint apis (merge b (:body a) b)))
+    (proxy-get entrypoint apis)))

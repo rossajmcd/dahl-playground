@@ -28,7 +28,8 @@
     (let [clj-body (js->clj (.parse js/JSON body) :keywordize-keys true)
           example (into {} (map (fn [[k v]] {k (first v)}) clj-body))
           json (.stringify js/JSON (clj->js example))]
-      [:form {:onSubmit (fn [e]
+      [:form {:class "clearfix"
+              :onSubmit (fn [e]
                           (.preventDefault e)
                           (let [d (.-value (js/document.getElementById "payload"))]
                             (rf/dispatch [:handler-with-http uri method d])))}
