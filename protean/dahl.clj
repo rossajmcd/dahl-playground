@@ -22,16 +22,21 @@
     (into {} (for [e edges] {e (str (java.util.UUID/randomUUID))}))))
 
 (defn- msg
-  [k v opts]
-  (str k ": '" v "' does not match one of: [" (str/join ", " opts) "]"))
+  [t k v]
+  (cond
+    (= t :number) (when-not (number? v) (str k ": '" v "' is not a number"))
+    (= t :string) (when-not (string? v) (str k ": '" v "' is not a string"))
+    (set? t)      (when-not (.contains t v) (str k ": '" v "' does not match one of: [" (str/join ", " t) "]"))
+    (string? t)   (when-not (re-matches (re-pattern t) v) (str k ": '" v "' does not match " t))
+    :else         nil))
 
 (defn- errors
   [curr-n bodies edge body uuid edges]
   (if (nil? edge)
     [(msg "uuid" uuid (vals edges))]
     (->> (get-in bodies [curr-n edge])
-         (remove (fn [[k vs]] (.contains vs (get body k))))
-         (map (fn [[k vs]] (msg (name k) (get body k) vs)))
+         (map (fn [[k vs]] (msg vs k (get body k))))
+         (remove nil?)
          seq)))
 
 (defn- get-resource
@@ -98,15 +103,24 @@
 
 (defn proxy-get
   [entrypoint apis]
-  (proxy-links entrypoint apis (into {} (map #(:body (http/get % {:as :json})) apis))))
+  (let [results (doall (map #(http/get % {:as :json :coerce :always :throw-exceptions false}) apis))
+        errors (remove #(= (:status %) 200) results)]
+    {:status (if (empty? errors) 200 (:status (first errors)))
+     :results (into {} (proxy-links entrypoint apis (map #(:body %) results)))}))
 
 (defn proxy-post
   [entrypoint apis resource uuid body]
   (if-let [f (first (filter #(= (get-resource %) resource) apis))]
-    (let [a (http/post (str f "/" uuid) {:body (clojure.data.json/json-str body)
-                                         :headers {"Content-Type" "application/json"}
-                                         :as :json})
-          b (into {} (map #(:body (http/get % {:as :json}))
-                          (remove #(= (get-resource %) resource) apis)))]
-      (proxy-links entrypoint apis (merge b (:body a) b)))
-    (proxy-get entrypoint apis)))
+    (let [results (doall (map
+                    #(if (= (get-resource %) resource)
+                      (http/post (str % "/" uuid)
+                        {:body (clojure.data.json/json-str body)
+                         :headers {"Content-Type" "application/json"}
+                         :as :json :coerce :always :throw-exceptions false})
+                      (http/get %
+                        {:as :json :coerce :always :throw-exceptions false}))
+                    apis))
+          errors (remove #(= (:status %) 200) results)]
+      {:status (if (empty? errors) 200 (:status (first errors)))
+       :results (into {} (proxy-links entrypoint apis (map #(:body %) results)))})
+    {:status 404 :results (:results (proxy-get entrypoint apis))}))

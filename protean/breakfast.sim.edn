@@ -10,13 +10,13 @@
 {
   "api" {
     "breakfast" {
-      :get #(respond % 200 (d/proxy-get entrypoint apis))
+      :get #(let [{:keys [status results]} (d/proxy-get entrypoint apis)]
+              (respond % status results))
     }
     "breakfast/${resource}/${uuid}" {
-      :post #(respond % 200 (d/proxy-post entrypoint apis
-                                          (path-param % "resource")
-                                          (path-param % "uuid")
-                                          (body-clj % true)))
+      :post #(let [{:keys [status results]} (d/proxy-post entrypoint apis (path-param % "resource") (path-param % "uuid") (body-clj % true))]
+              (respond % status results))
+
     }
   }
 }
