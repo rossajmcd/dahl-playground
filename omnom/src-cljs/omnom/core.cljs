@@ -54,20 +54,53 @@
 
 ;; ------------- View ----------------------------------------------------------
 
+(defn set-item!
+  [key val]
+  (.setItem (.-localStorage js/window) key val))
+
+(defn get-item
+  [key]
+  (.getItem (.-localStorage js/window) key))
+
 (defn ui
   []
   (let [bodies @(rf/subscribe [:api-body])
         form @(rf/subscribe [:api-form])
         host @(rf/subscribe [:api-host])]
-    (cond
-      (:body form)    (b/barf (b/->Form "dahl+json") form host)
-      form            (rf/dispatch [:handler-with-http (:uri form) (:method form) nil])
-      (empty? bodies) "Enter the starting point of your API and hit explore."
-      :else           [:ul {:class "list-unstyled"}
-                        (doall (for [[resource body] bodies]
-                          [:li {:key (name resource)}
-                            [:h1 (name resource)]
-                            (b/barf (b/->DahlJson "dahl+json") body host)]))])))
+      (cond
+        (:body form)    (b/barf (b/->Form "dahl+json") form host)
+        form            (rf/dispatch [:handler-with-http (:uri form) (:method form) nil])
+        (empty? bodies) "Enter the starting point of your API and hit explore."
+        :else           [:div
+                          (when (> (count bodies) 1)
+                            [:ul {:class "nav nav-tabs"
+                                  :id "ui-tabs"
+                                  :role "tablist"}
+                              (doall (for [[resource body] bodies]
+                                (let [r (name resource)]
+                                  [:li {:class "nav-item"
+                                        :key (str r "-tab")}
+                                    [:a {:class (str "nav-link" (when (= (get-item :tab) r) " active"))
+                                         :id (str r "-tab")
+                                         :data-toggle "tab"
+                                         :href (str "#" r)
+                                         :role "tab"
+                                         :aria-controls r
+                                         :aria-selected "false"
+                                         :on-click #(set-item! :tab r)}
+                                      r]])))])
+                          [:div {:class "tab-content"}
+                            (doall (for [[resource body] bodies]
+                              (let [r (name resource)]
+                                [:div {:class (str "tab-pane"
+                                                (when (or (= (count bodies) 1)
+                                                          (= (get-item :tab) r))
+                                                  " active"))
+                                       :key (str r "-pane")
+                                       :id r
+                                       :role "tabpanel"
+                                       :aria-labelledby (str r "-tab")}
+                                  (b/barf (b/->DahlJson "dahl+json") body host)])))]])))
 
 (defn version [] (str "v" (project-version)))
 
