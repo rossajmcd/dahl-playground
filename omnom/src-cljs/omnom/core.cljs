@@ -31,7 +31,7 @@
   (fn [{:keys [db]} [_ uri method body]]
     {:http-xhrio {:uri uri
                   :method (keyword method)
-                  :params (.parse js/JSON body)
+                  :params body
                   :timeout 8000
                   :format (ajax/json-request-format)
                   :response-format (ajax/json-response-format {:keywords? true})

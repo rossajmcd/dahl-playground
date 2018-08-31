@@ -1,0 +1,41 @@
+(ns form.api
+  (:require [dahl :as d]
+            [protean.api.transformation.sim :refer :all]))
+
+(dependencies '[[hickory "0.7.1"]])
+(require '[hickory.core :as hickory])
+
+(def entrypoint "api/form")
+
+(def atom-nodes (atom [{:Start nil}]))
+
+(def atom-edges (atom nil))
+
+(def graph
+  {:Start {:form1 :Step1}
+   :Step1 {:form2 :Step2}
+   :Step2 {}})
+
+(def rules nil)
+
+(defn bodies
+  [request]
+  {:Start {:form1 (first (map hickory/as-hiccup (hickory/parse-fragment (slurp (find-path request "form1.html")))))}
+   :Step1 {:form2 (first (map hickory/as-hiccup (hickory/parse-fragment (slurp (find-path request "form2.html")))))}})
+
+(defn handler
+  [req {:keys [status nodes edges result]}]
+  (when nodes (reset! atom-nodes nodes))
+  (when edges (reset! atom-edges edges))
+  (respond req status result))
+
+{
+  "api" {
+    "form" {
+      :get #(handler % (d/get entrypoint @atom-nodes graph rules (bodies %)))
+    }
+    "form/${uuid}" {
+      :post #(handler % (d/post entrypoint @atom-nodes @atom-edges graph rules (bodies %) (path-param % "uuid") (body-clj % true)))
+    }
+  }
+}

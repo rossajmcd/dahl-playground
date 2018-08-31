@@ -1,0 +1,15 @@
+{
+  :vars {"uuid" {:type :Uuid}}
+  :rsp {:headers {"Content-Type" "application/json"}}
+  "api" {
+    "form" {
+      :get {:rsp {:200 {}}}
+    }
+    "form/${uuid}" {
+      :post {
+        :req {:headers {"Content-Type" "application/json"}}
+        :rsp {:200 {} :400 {} :404 {}}
+      }
+    }
+  }
+}

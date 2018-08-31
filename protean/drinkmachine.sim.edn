@@ -10,7 +10,7 @@
 
 (def graph
   {:Ready {:select-ingredients :Ingredients}
-   :Ingredients {:add-beverage-required :Ingredients
+   :Ingredients {:add-beverage :Ingredients
                  :add-milk :Ingredients
                  :add-sugar :Ingredients
                  :make-drink :MakingDrink}
@@ -29,10 +29,19 @@
               (when (= (d/current-node-key @atom-nodes) :MakingDrink)
                 (swap! atom-nodes d/update-node {:MadeDrink nil}))))})
 
+(defn create-select
+  [name label options]
+  [:div {:class "form-group"}
+    [:label {:for name} label]
+    (concat
+      [:select {:class "form-control" :id name :name name :required "required"}]
+      [[:option {:value "" } (str "Select a " label)]]
+      (for [x options] [:option {:value x} x]))])
+
 (def bodies
-  {:Ingredients {:add-beverage-required {:beverage #{"tea" "coffee"}}
-                 :add-milk {:milk #{"none" "semi" "full"}}
-                 :add-sugar {:sugar #{0 1 2}}}})
+  {:Ingredients {:add-beverage (create-select "beverage" "Beverage" ["tea" "coffee"])
+                 :add-milk (create-select "milk" "Milk" ["none" "semi" "full"])
+                 :add-sugar (create-select "sugar" "Sugar" [0 1 2])}})
 
 (defn handler
   [req {:keys [status nodes edges result]}]

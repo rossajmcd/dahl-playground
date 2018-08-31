@@ -28,9 +28,18 @@
              (when (= (d/current-node-key @atom-nodes) :MakingToast)
                (swap! atom-nodes d/update-node {:MadeToast nil}))))})
 
+(defn create-select
+  [name label options]
+  [:div {:class "form-group"}
+    [:label {:for name} label]
+    (concat
+      [:select {:class "form-control" :id name :name name :required "required"}]
+      [[:option {:value "" } (str "Select a " label)]]
+      (for [x options] [:option {:value x} x]))])
+
 (def bodies
-  {:Settings {:add-bread-mode {:breadmode #{"bread" "croissant"}}
-              :add-strength {:strength #{1 2 3 4 5}}}})
+  {:Settings {:add-bread-mode (create-select "breadmode" "Bread Mode" ["bread" "croissant"])
+              :add-strength (create-select "strength" "Strength" [0 1 2 3 4 5])}})
 
 (defn handler
   [req {:keys [status nodes edges result]}]

@@ -32,12 +32,13 @@
 
 (defn- errors
   [curr-n bodies edge body uuid edges]
-  (if (nil? edge)
-    [(msg "uuid" uuid (vals edges))]
-    (->> (get-in bodies [curr-n edge])
-         (map (fn [[k vs]] (msg vs k (get body k))))
-         (remove nil?)
-         seq)))
+  nil)
+  ; (if (nil? edge)
+  ;   [(msg "uuid" uuid (vals edges))]
+  ;   (->> (get-in bodies [curr-n edge])
+  ;        (map (fn [[k vs]] (msg vs k (get body k))))
+  ;        (remove nil?)
+  ;        seq)))
 
 (defn- get-resource
   [entrypoint]

@@ -1,5 +1,6 @@
 (ns omnom.protocol.barf
   (:require [re-frame.core :as rf]
+            [form.juice :as fj]
             [omnom.protocol.hiccup :as h]
             [omnom.utils :as u]))
 
@@ -25,16 +26,13 @@
 
   Form
   (barf [_ {:keys [uri method body errors]} host]
-    (let [clj-body (js->clj (.parse js/JSON body) :keywordize-keys true)
-          example (into {} (map (fn [[k v]] {k (first v)}) clj-body))
-          json (.stringify js/JSON (clj->js example))]
+    (let [clj-body (js->clj (.parse js/JSON body) :keywordize-keys true)]
+      (when-not (empty? errors) (h/hiccup (h/->Error errors)))
       [:form {:class "clearfix"
+              :id "dahl-form"
               :onSubmit (fn [e]
                           (.preventDefault e)
-                          (let [d (.-value (js/document.getElementById "payload"))]
+                          (let [d (form.juice/squeeze e)]
                             (rf/dispatch [:handler-with-http uri method d])))}
-        (when-not (empty? errors) (h/hiccup (h/->Error errors)))
-        [:div {:class "form-group"}
-          [:label {:for "payload"} "Body"]
-          [:textarea {:id "payload" :name "payload" :class "form-control" :rows 10 :defaultValue json}]]
+        clj-body
         [:button {:type "submit" :id "send-btn" :class "btn btn-primary float-right"} "Send"]])))
