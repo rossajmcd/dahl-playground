@@ -18,10 +18,16 @@
 
 (def rules nil)
 
+(defn hick
+  [request file]
+  (first
+    (map hickory/as-hiccup
+         (hickory/parse-fragment (slurp (find-path request file))))))
+
 (defn bodies
   [request]
-  {:Start {:form1 (first (map hickory/as-hiccup (hickory/parse-fragment (slurp (find-path request "form1.html")))))}
-   :Step1 {:form2 (first (map hickory/as-hiccup (hickory/parse-fragment (slurp (find-path request "form2.html")))))}})
+  {:Start {:form1 (hick request "form1.html")}
+   :Step1 {:form2 (hick request "form2.html")}})
 
 (defn handler
   [req {:keys [status nodes edges result]}]
