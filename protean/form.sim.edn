@@ -1,8 +1,8 @@
 (ns form.api
   (:require [dahl :as d]
-            [protean.api.transformation.sim :refer :all]))
+            [protean.api.transformation.sim :as sim]))
 
-(dependencies '[[hickory "0.7.1"]])
+(sim/dependencies '[[hickory "0.7.1"]])
 (require '[hickory.core :as hickory])
 
 (def entrypoint "api/form")
@@ -22,7 +22,7 @@
   [request file]
   (first
     (map hickory/as-hiccup
-         (hickory/parse-fragment (slurp (find-path request file))))))
+         (hickory/parse-fragment (slurp (sim/find-path request file))))))
 
 (defn bodies
   [request]
@@ -33,7 +33,7 @@
   [req {:keys [status nodes edges result]}]
   (when nodes (reset! atom-nodes nodes))
   (when edges (reset! atom-edges edges))
-  (respond req status result))
+  (sim/response req status result))
 
 {
   "api" {
@@ -41,7 +41,7 @@
       :get #(handler % (d/get entrypoint @atom-nodes graph rules (bodies %)))
     }
     "form/${uuid}" {
-      :post #(handler % (d/post entrypoint @atom-nodes @atom-edges graph rules (bodies %) (path-param % "uuid") (body-clj % true)))
+      :post #(handler % (d/post entrypoint @atom-nodes @atom-edges graph rules (bodies %) (sim/path-param % "uuid") (sim/body-clj % true)))
     }
   }
 }

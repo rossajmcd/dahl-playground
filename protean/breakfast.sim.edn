@@ -1,6 +1,6 @@
 (ns breakfast.api
   (:require [dahl :as d]
-            [protean.api.transformation.sim :refer :all]))
+            [protean.api.transformation.sim :as sim]))
 
 (def entrypoint "api/breakfast")
 
@@ -11,11 +11,11 @@
   "api" {
     "breakfast" {
       :get #(let [{:keys [status results]} (d/proxy-get entrypoint apis)]
-              (respond % status results))
+              (sim/response % status results))
     }
     "breakfast/${resource}/${uuid}" {
-      :post #(let [{:keys [status results]} (d/proxy-post entrypoint apis (path-param % "resource") (path-param % "uuid") (body-clj % true))]
-              (respond % status results))
+      :post #(let [{:keys [status results]} (d/proxy-post entrypoint apis (sim/path-param % "resource") (sim/path-param % "uuid") (sim/body-clj % true))]
+              (sim/response % status results))
 
     }
   }

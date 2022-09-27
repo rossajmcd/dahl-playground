@@ -1,6 +1,6 @@
 (ns drinkmachine.api
   (:require [dahl :as d]
-            [protean.api.transformation.sim :refer :all]))
+            [protean.api.transformation.sim :as sim]))
 
 (def entrypoint "api/drinkmachine")
 
@@ -47,7 +47,7 @@
   [req {:keys [status nodes edges result]}]
   (when nodes (reset! atom-nodes nodes))
   (when edges (reset! atom-edges edges))
-  (respond req status result))
+  (sim/response req status result))
 
 {
   "api" {
@@ -56,7 +56,7 @@
     }
     "drinkmachine/${uuid}" {
       :post #(handler % (d/post entrypoint @atom-nodes @atom-edges graph rules
-                                bodies (path-param % "uuid") (body-clj % true)))
+                                bodies (sim/path-param % "uuid") (sim/body-clj % true)))
     }
   }
 }
