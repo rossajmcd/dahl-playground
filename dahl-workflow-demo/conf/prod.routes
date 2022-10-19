@@ -1,0 +1,3 @@
+GET     /api/drinkmachine             uk.gov.hmrc.dahldemo.Drinkmachine.get(stepKey = "start")
+GET     /api/drinkmachine/:stepKey    uk.gov.hmrc.dahldemo.Drinkmachine.get(stepKey)
+POST    /api/drinkmachine/:stepKey    uk.gov.hmrc.dahldemo.Drinkmachine.post(stepKey)
